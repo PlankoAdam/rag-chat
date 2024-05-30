@@ -1,0 +1,8 @@
+// app global css in SCSS form
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.chat-input {
+  background-color: $dark-page;
+}

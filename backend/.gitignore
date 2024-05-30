@@ -1,0 +1,7 @@
+/.vscode
+*.guff
+app/llms/*
+app/__pycache__/
+app/uploads/
+app/vectorstores/
+/venv/
