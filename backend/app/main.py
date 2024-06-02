@@ -14,10 +14,8 @@ UPLOADS_DIR = os.path.abspath('./uploads')
 EXPIRATION_TIME = 1800 # seconds
 
 # Background cleanup process
-def cleanup_expired_files():
+def cleanupExpiredFiles():
     while True:
-        print('Deleting old files...')
-        print(os.listdir(DB_DIR))
         current_time = time.time()
         for file_name in os.listdir(DB_DIR):
             file_path = os.path.join(DB_DIR, file_name)
@@ -27,7 +25,7 @@ def cleanup_expired_files():
         time.sleep(EXPIRATION_TIME)  # Check once every expiration period
 
 # Start the background cleanup thread
-cleanup_thread = Thread(target=cleanup_expired_files, daemon=True)
+cleanup_thread = Thread(target=cleanupExpiredFiles, daemon=True)
 cleanup_thread.start()
 
 logger = logging.getLogger('waitress')
@@ -59,11 +57,12 @@ def loadSerializedVectorStore(file_name):
 def process():
     for fname in request.files:
         f = request.files.get(fname)
-        secfname = secure_filename(fname)
-        fpath = os.path.join(UPLOADS_DIR, secfname)
-        f.save(fpath)
-
+        
         if (f.content_type == 'application/pdf') | (f.content_type == 'text/plain'):
+            secfname = secure_filename(fname)
+            fpath = os.path.join(UPLOADS_DIR, secfname)
+            f.save(fpath)
+
             chunks = []
 
             if f.content_type == 'application/pdf':
@@ -78,9 +77,9 @@ def process():
                 return 'Empty file', 400
 
             serialized_vs = getSerializedVectorStore(chunks)
-            fname = saveSerializedVectorStore(serialized_vs)
+            vs_id_fname = saveSerializedVectorStore(serialized_vs)
 
-            return jsonify({"vector_store_id": fname}), 200
+            return jsonify({"vector_store_id": vs_id_fname}), 200
 
         return 'Wrong file type', 415
     return 'No file supplied', 400

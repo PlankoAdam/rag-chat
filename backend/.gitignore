@@ -1,7 +1,8 @@
 /.vscode
 *.guff
-app/llms/*
+app/models/*
 app/__pycache__/
 app/uploads/
 app/vectorstores/
 /venv/
+/app/tests/__pycache__/

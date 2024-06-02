@@ -17,7 +17,7 @@ Human: {human}
 Chatbot:"""
 prompt_template = PromptTemplate(template=template, input_variables=["context", "human"])
 model = llamacpp.LlamaCpp(
-    model_path="./llms/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+    model_path="./models/llm/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
     temperature=0,
     max_tokens=1500,
     stop=['\n'],
@@ -40,7 +40,7 @@ just reformulate it if needed and otherwise return it as is:
 contextualize_q_prompt = PromptTemplate(template=contextualize_q_system_prompt, input_variables=['history', 'question'])
 contextualize_q_chain = contextualize_q_prompt | model | StrOutputParser()
 
-embedding_model = LlamaCppEmbeddings(model_path="./llms/embedding/nomic-embed-text-v1.5.f32.gguf", n_gpu_layers=-1, verbose=False,)
+embedding_model = LlamaCppEmbeddings(model_path="./models/embedding/nomic-embed-text-v1.5.f32.gguf", n_gpu_layers=-1, verbose=False,)
 
 # Document splitter
 splitter = RecursiveCharacterTextSplitter(
