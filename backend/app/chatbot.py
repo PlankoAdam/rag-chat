@@ -10,11 +10,12 @@ from langchain_community.embeddings.llamacpp import LlamaCppEmbeddings
 
 template = """[INST]You are a chatbot having a conversation with a human.
 Given the following extracted parts of a long document and a question, create a final answer.
+Answer ONLY based on the provided context.
 Context:
 '...{context}...'[/INST]
 
-Human: {human}
-Chatbot:"""
+Question: {human}
+Answer:"""
 prompt_template = PromptTemplate(template=template, input_variables=["context", "human"])
 model = llamacpp.LlamaCpp(
     model_path="./models/llm/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
@@ -23,7 +24,7 @@ model = llamacpp.LlamaCpp(
     stop=['\n'],
     verbose=True,
     echo=True,
-    # n_ctx=1024,
+    n_ctx=4096,
     n_gpu_layers=-1,
 )
 rag_chain = prompt_template | model | StrOutputParser()
@@ -34,9 +35,12 @@ contextualize_q_system_prompt = """[INST]Given a chat history and the latest use
 which might reference context in the chat history, formulate a standalone question \
 which can be understood without the chat history. Do NOT answer the question, \
 just reformulate it if needed and otherwise return it as is:
+##### START OF CHAT HISTORY #####
 {history}
-{question}
-[/INST]"""
+##### END OF CHAT HISTORY #####
+Latest user question: {question}
+[/INST]
+Reformulated question:"""
 contextualize_q_prompt = PromptTemplate(template=contextualize_q_system_prompt, input_variables=['history', 'question'])
 contextualize_q_chain = contextualize_q_prompt | model | StrOutputParser()
 
@@ -44,7 +48,7 @@ embedding_model = LlamaCppEmbeddings(model_path="./models/embedding/nomic-embed-
 
 # Document splitter
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=300, chunk_overlap=150, separators=['.', '?', '!']
+    chunk_size=500, chunk_overlap=150, separators=['\n\n', '\n', '.', '?', '!']
 )
 
 def split(text):
@@ -93,7 +97,7 @@ def getStandaloneQuery(query, msgs):
 def getContext(vector_store, standalone_q):
     retriever = vector_store.as_retriever()
     retriever_result = retriever.invoke(standalone_q)
-    return retriever_result[0].page_content
+    return retriever_result[0].page_content + retriever_result[1].page_content
 
 def answer(serialized_vector_store, query, msgs):
     sa_q = getStandaloneQuery(query, msgs)
